@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ARIMO STORE HUB | Premium AI Prompts, Canva Templates & Design Services ($ & ₦)</title>
+    <meta name="description" content="Official ARIMO STORE HUB by Raymond Arimo: Master AI prompt engineering, download luxury Canva templates, prepare for $15–$30/hr remote data annotation jobs, and book bespoke design services worldwide." />
+    <meta name="keywords" content="ARIMO STORE HUB, AI Prompts, Canva Templates, Data Annotation Jobs, AI Design, Raymond Arimo, Remote Jobs Nigeria, Earn in Dollars, Paystack, Flutterwave, Stripe" />
+    <meta name="author" content="Raymond Arimo" />
+    
+    <!-- Favicon & Brand Icons -->
+    <link rel="icon" type="image/png" href="/arimz-logo.png" />
+    <link rel="apple-touch-icon" href="/arimz-logo.png" />
+    <link rel="shortcut icon" href="/arimz-logo.png" />
+
+    <!-- Performance Optimization: Preconnect & DNS-Prefetch -->
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    <link rel="preconnect" href="https://js.paystack.co" crossorigin />
+    <link rel="dns-prefetch" href="https://js.paystack.co" />
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
+
+    <!-- Security & SSL Enforcement -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="robots" content="noindex, nofollow" id="meta-robots-tag" />
+    <script>
+      // Automatically enforce noindex, nofollow on /admin, /dashboard, and secure paths
+      if (
+        window.location.pathname.startsWith('/admin') ||
+        window.location.pathname.startsWith('/dashboard') ||
+        window.location.pathname.startsWith('/api') ||
+        window.location.hash.includes('admin')
+      ) {
+        var rMeta = document.getElementById('meta-robots-tag') || document.createElement('meta');
+        rMeta.name = 'robots';
+        rMeta.content = 'noindex, nofollow, noarchive, nosnippet';
+        document.head.appendChild(rMeta);
+      }
+    </script>
+    <script>
+      // Force HTTPS on non-localhost production environments
+      if (
+        window.location.protocol === 'http:' &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1' &&
+        !window.location.hostname.endsWith('.internal')
+      ) {
+        window.location.replace('https:' + window.location.href.substring(window.location.protocol.length));
+      }
+    </script>
+
+    <!-- Official Secure Payment SDKs (PCI-DSS Level 1 Compliant) -->
+    <script src="https://js.paystack.co/v1/inline.js" async></script>
+    <script src="https://js.stripe.com/v3/" async></script>
+    
+    <!-- PWA & Mobile Web App -->
+    <meta name="theme-color" content="#000000" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Arimo Store" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://arimostorehub.com" />
+    <meta property="og:title" content="ARIMO STORE HUB — Premium AI Prompts, Canva Templates & Global Services" />
+    <meta property="og:description" content="Instant digital downloads in USD ($) & NGN (₦). Master ChatGPT, luxury Canva templates, and remote $20+/hr AI training jobs." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Twitter Meta -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Arimo AI & Design | Earn Online with AI & Design" />
+    <meta name="twitter:description" content="Digital products, Canva templates, and coaching for global and Nigerian creatives. Instant Paystack, Flutterwave & Stripe checkout." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Google Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Arimo AI & Design",
+        "founder": {
+          "@type": "Person",
+          "name": "Raymond Arimo"
+        },
+        "description": "Global AI and Design academy providing digital prompts, remote job kits, and design services.",
+        "url": "https://arimoai.com",
+        "sameAs": [
+          "https://chat.whatsapp.com/CEW43VPwEbJ3gvNOun9s9b"
+        ],
+        "offers": {
+          "@type": "AggregateOffer",
+          "priceCurrency": "USD",
+          "lowPrice": "5",
+          "highPrice": "250",
+          "offerCount": "10"
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-black text-white antialiased selection:bg-amber-500 selection:text-black">
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>
+

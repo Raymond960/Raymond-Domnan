@@ -1,0 +1,25 @@
+# ARIMZ OFFICIAL FAQ & KNOWLEDGE BASE
+
+[STORE & PLATFORM OVERVIEW]
+- Platform: ARIMZ Digital Asset & Design Studio Hub.
+- What we sell: Premium verified Canva templates, vector illustration kits, AI prompt packs, Data Annotation training guides, and high-impact social media kits.
+- Currency & Pricing: Prices are listed in NGN (Nigerian Naira) and USD. Starting from ₦7,500 ($5).
+- Delivery: Instant digital download + permanent storage in your Client Vault immediately upon verified payment.
+
+[PAYMENTS & CHECKOUT]
+- Supported Gateways: Paystack (Cards, Bank Transfer, USSD, OPay, Chipper), Flutterwave (Barter, Mobile Money, Cards), Stripe (Global USD/GBP/EUR Cards, Apple Pay, Google Pay).
+- Payment Confirmation: Automatic webhook & client receipt verification with cryptographic receipt hash.
+- Gift Cards: Users can purchase, gift, and redeem ARIMZ Gift Cards directly on the Gift Card Store page with instant digital codes.
+
+[CLIENT VAULT & DOWNLOADS]
+- Client Vault: Every customer gets a permanent Vault where all purchased items and bonus kits can be re-downloaded at any time without expiry.
+- License Type: Commercial license for client work, personal branding, and marketing materials (no direct resale of raw source files).
+
+[CUSTOM DESIGN BOOKINGS & SERVICES]
+- Services Offered: Custom 3D & Vector Typography, Full Brand Identity Kits, Bespoke Data Annotation Datasets, and Motion Graphics.
+- Turnaround Time: 48 to 72 hours for standard custom milestones.
+- Deposit & Brief: Clients fill out the interactive Custom Booking form and can use the built-in AI Design Brief & Concept Generator to outline their style preferences and brand colors.
+
+[SUPPORT & ESCALATION]
+- Human Support: Available 24/7 via the green WhatsApp floating button or email at support@arimz.com / WhatsApp line +234-814-ARIMZ.
+- Unknown Questions Policy: If an inquiry cannot be answered by ARIMZ features, immediately connect the user to a human agent.

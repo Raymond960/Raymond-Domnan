@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #09090b;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* Fluid responsive typography for announcement bar */
+.announcement-text {
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  line-height: 1.25;
+}
+
+/* Ensure all flex and grid children fill width properly */
+.full-width-card {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+@keyframes progressFill {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}

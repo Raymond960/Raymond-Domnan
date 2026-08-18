@@ -1,0 +1,6 @@
+{
+  "name": "ARIMO STORE HUB",
+  "description": "Global mobile-first digital platform for ARIMO STORE HUB offering premium AI prompt kits, Canva templates, data annotation career bundles, bespoke design services, and worldwide multi-gateway checkout in NGN and USD.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
