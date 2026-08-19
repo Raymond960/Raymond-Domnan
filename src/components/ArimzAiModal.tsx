@@ -278,7 +278,10 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
       </div>
 
       {/* 3. FULL PAGE CHAT MESSAGE STREAM (100% HEIGHT FLEX-1) */}
-      <main className="flex-1 w-full overflow-y-auto px-4 sm:px-6 md:px-12 lg:px-24 py-6 space-y-6 max-w-5xl mx-auto">
+      <main
+        className="flex-1 w-full overflow-y-auto px-4 sm:px-6 md:px-12 lg:px-24 py-6 space-y-6 max-w-5xl mx-auto"
+        style={{ paddingBottom: '160px' }}
+      >
         {/* Welcome Character Hero Card */}
         <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-zinc-900/90 via-zinc-950 to-zinc-900/90 border border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.1)] flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
           <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md bg-zinc-950 shrink-0">
@@ -384,44 +387,79 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
         <div ref={messagesEndRef} />
       </main>
 
-      {/* 4. FULL WIDTH RESPONSIVE BOTTOM INPUT BAR */}
-      <footer className="w-full bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800/90 px-4 sm:px-6 md:px-12 lg:px-24 py-3 sm:py-4 shrink-0 shadow-2xl z-20">
-        <div className="max-w-5xl mx-auto">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
+      {/* 4. CHAT INPUT BAR LIFTED ABOVE BOTTOM NAVIGATION */}
+      <footer
+        id="arimz-ai-chat-input-bar"
+        className="fixed transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
+        style={{
+          position: 'fixed',
+          bottom: 'calc(90px + env(safe-area-inset-bottom, 0px))',
+          left: '16px',
+          right: '16px',
+          height: '52px',
+          background: 'rgba(20, 20, 20, 0.95)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 193, 7, 0.4)',
+          borderRadius: '25px',
+          padding: '0 8px 0 16px',
+          zIndex: 9997,
+          maxWidth: '820px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+          className="w-full flex items-center gap-2"
+        >
+          {/* Input field inside */}
+          <input
+            ref={inputRef}
+            id="arimz-ai-input"
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Ask ARIMZ AI anything..."
+            className="flex-1 bg-transparent text-white placeholder:text-zinc-400 text-xs sm:text-sm border-none outline-none ring-0 focus:ring-0 focus:outline-none"
+            style={{
+              background: 'transparent',
+              color: '#ffffff',
+              border: 'none',
+              outline: 'none',
+              width: '100%',
+              boxShadow: 'none'
             }}
-            className="flex items-center gap-2 sm:gap-3"
+            disabled={isLoading}
+          />
+
+          {/* Yellow circle send button with paper plane icon */}
+          <button
+            id="arimz-ai-send-btn"
+            type="submit"
+            disabled={isLoading || !inputValue.trim()}
+            className="flex items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            style={{
+              width: '38px',
+              height: '38px',
+              minWidth: '38px',
+              minHeight: '38px',
+              borderRadius: '50%',
+              backgroundColor: '#FFC107',
+              color: '#000000',
+              border: 'none',
+              boxShadow: '0 2px 10px rgba(255, 193, 7, 0.4)'
+            }}
+            title="Send message"
+            aria-label="Send message"
           >
-            <input
-              ref={inputRef}
-              id="arimz-ai-input"
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask ARIMZ AI anything (e.g. 'How do custom design bookings work?')..."
-              className="flex-1 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl bg-zinc-900 border border-zinc-750 focus:border-amber-400 focus:bg-zinc-850 text-white placeholder:text-zinc-500 text-xs sm:text-sm outline-none transition-all shadow-inner"
-              disabled={isLoading}
-            />
-
-            <button
-              id="arimz-ai-send-btn"
-              type="submit"
-              disabled={isLoading || !inputValue.trim()}
-              className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-950 font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer shrink-0 flex items-center gap-2"
-              title="Send Message"
-            >
-              <span className="hidden sm:inline text-xs font-black uppercase tracking-wider">Send</span>
-              <Send className="w-4 h-4 text-zinc-950" />
-            </button>
-          </form>
-
-          <div className="flex items-center justify-between px-2 pt-2 text-[10px] text-zinc-500">
-            <span>Powered by ARIMZ Neural Design Engine &amp; Gemini</span>
-            <span className="hidden sm:inline">Press Enter ↵ to send</span>
-          </div>
-        </div>
+            <Send className="w-4 h-4 text-black stroke-[2.5]" style={{ color: '#000000' }} />
+          </button>
+        </form>
       </footer>
     </div>
   );

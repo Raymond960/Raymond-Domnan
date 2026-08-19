@@ -80,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-800/80 transition-all">
+    <header className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-800/80 transition-all shadow-md">
       {/* Top Global Creator Broadcast Ribbon */}
       <div className="w-full bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-zinc-950 px-3 py-1.5 text-center font-black tracking-wide flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-xs">
         <span className="flex h-2 w-2 relative shrink-0">
@@ -99,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between min-h-[4rem] md:min-h-[4.75rem] py-2 flex-wrap gap-2">
+        <div className="flex items-center justify-between min-h-[4rem] md:min-h-[4.75rem] py-2 gap-2 sm:gap-4">
           {/* Brand Logo & Top-Left AI + Language Cluster */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Brand Logo */}
@@ -108,7 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center cursor-pointer group select-none shrink-0"
             >
               <BrandLogo
-                size={44}
+                size={42}
                 showText={true}
                 showSubtitle={true}
                 rounded="rounded-2xl"

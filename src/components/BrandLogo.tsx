@@ -107,16 +107,16 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
       {/* Brand Typography */}
       {showText && (
-        <div className="text-left">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm sm:text-base md:text-lg font-black tracking-tight text-white group-hover:text-amber-300 transition-colors">
+        <div className="text-left hidden xs:block sm:block">
+          <div className="flex items-center gap-1">
+            <span className="text-xs sm:text-base font-black tracking-tight text-white group-hover:text-amber-300 transition-colors whitespace-nowrap">
               ARIMO STORE HUB
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FFC107] animate-pulse hidden sm:inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FFC107] animate-pulse hidden sm:inline-block shrink-0" />
           </div>
           {showSubtitle && (
-            <p className="text-[9px] sm:text-[10px] text-zinc-400 font-medium tracking-wide">
-              Learn AI • Design • Digital Products ($ &amp; ₦)
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 font-medium tracking-wide hidden sm:block truncate max-w-[200px]">
+              Learn AI • Design • Digital Products
             </p>
           )}
         </div>

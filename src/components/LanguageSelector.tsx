@@ -20,16 +20,22 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
   const activeLang = LANGUAGES.find((l) => l.code === currentLanguage) || LANGUAGES[0];
 
+  // Close dropdown on click outside
   useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
   }, []);
 
+  // Auto-focus search on open
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => {
@@ -49,25 +55,37 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   );
 
   return (
-    <div ref={dropdownRef} className="relative inline-block text-left select-none">
-      {/* 3. EN Pill Button */}
+    <div
+      ref={dropdownRef}
+      className="relative inline-block text-left select-none shrink-0"
+      style={{ zIndex: isOpen ? 99999 : 'auto' }}
+    >
+      {/* 1. EN PILL BUTTON */}
       <button
         id="language-selector-pill-btn"
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="group flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer select-none"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
+        className="group relative flex items-center justify-center gap-1.5 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer select-none shadow-md"
         style={{
-          background: '#FFC107',
+          backgroundColor: '#FFC107',
           color: '#000000',
           padding: '6px 14px',
           borderRadius: '20px',
           fontWeight: 700,
-          boxShadow: isOpen ? '0 0 15px rgba(255,193,7,0.8)' : '0 2px 10px rgba(255,193,7,0.4)',
+          fontSize: '13px',
           border: 'none',
-          fontSize: '13px'
+          boxShadow: isOpen
+            ? '0 0 16px rgba(255, 193, 7, 0.9)'
+            : '0 2px 10px rgba(255, 193, 7, 0.4)',
+          outline: 'none',
+          whiteSpace: 'nowrap'
         }}
         title="Select Language"
         aria-label="Select Language"
+        aria-expanded={isOpen}
       >
         <span className="text-sm leading-none transition-transform duration-300 group-hover:scale-125">
           🌍
@@ -82,26 +100,30 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         />
       </button>
 
-      {/* 2. Glassmorphism Language Dropdown */}
+      {/* 2. GLASSMORPHISM LANGUAGE DROPDOWN */}
       {isOpen && (
         <div
           id="language-dropdown-menu"
-          className="fixed left-4 right-4 sm:left-auto sm:right-0 mt-2 sm:absolute sm:left-0 sm:right-auto sm:top-full animate-slide-down transition-all duration-300"
+          className="absolute left-0 top-full mt-2 animate-slide-down select-none"
           style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: '0',
             width: '320px',
-            maxWidth: 'calc(100vw - 32px)',
-            background: 'rgba(20, 20, 20, 0.95)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            maxWidth: 'calc(100vw - 24px)',
+            backgroundColor: 'rgba(20, 20, 20, 0.98)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid rgba(255, 193, 7, 0.4)',
             borderRadius: '16px',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.9)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(255, 193, 7, 0.15)',
             zIndex: 99999,
             overflow: 'hidden'
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header & Search */}
-          <div className="p-3 border-b border-zinc-800 space-y-2 bg-black/40">
+          <div className="p-3 border-b border-zinc-800 space-y-2 bg-black/60">
             <div className="flex items-center justify-between text-xs font-bold text-white px-1">
               <div className="flex items-center gap-1.5 text-amber-400">
                 <span>🌍</span>
