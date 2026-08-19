@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AiTipItem } from '../types';
 import { AI_TIPS_DATA, WHATSAPP_COMMUNITY_URL } from '../data/mockData';
+import { AiAssistantLogo } from './AiAssistantLogo';
 
 interface AiTipOfTheDayProps {
   onExploreProducts?: () => void;
@@ -80,13 +81,7 @@ export const AiTipOfTheDay: React.FC<AiTipOfTheDayProps> = ({ onExploreProducts,
               onClick={onOpenAiAssistant}
               className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-900 hover:from-zinc-900 hover:to-zinc-850 text-amber-300 border border-amber-500/50 text-xs font-black flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all cursor-pointer"
             >
-              <div className="relative w-5 h-5 rounded-full overflow-hidden border border-amber-400 bg-zinc-900 shrink-0">
-                <img
-                  src="/arimz-avatar.jpg"
-                  alt="ARIMZ AI"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
+              <AiAssistantLogo size={20} showPulse={true} pulseSize="sm" />
               <span>Ask ARIMZ AI</span>
             </button>
           )}

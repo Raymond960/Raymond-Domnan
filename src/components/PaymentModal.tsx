@@ -32,6 +32,7 @@ import { WHATSAPP_COMMUNITY_URL } from '../data/mockData';
 import { GiftCardPaymentSection } from './GiftCardPaymentSection';
 import { Gift } from 'lucide-react';
 import { triggerSecurityAlert, logSecurityEvent } from '../utils/securitySystem';
+import { PAYSTACK_PUBLIC_KEY, openPaystackLiveCheckout } from '../utils/paystack';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -290,6 +291,87 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  const handleLaunchPaystackLivePopup = async () => {
+    setPaymentError(null);
+    if (!email || !fullName) {
+      alert('Please fill in your name and email first.');
+      return;
+    }
+    setIsProcessing(true);
+    const launched = await openPaystackLiveCheckout({
+      email: email.trim(),
+      amountNaira: totalNaira,
+      customerName: fullName.trim(),
+      phone: phone.trim(),
+      metadata: {
+        item_count: items.length,
+        items: items.map((i) => i.product.title).join(', ')
+      },
+      onSuccess: (response: any) => {
+        try {
+          const orderId = `ORD-PSTK-LIVE-${Math.floor(100000 + Math.random() * 900000)}`;
+          const ref = response.reference || response.trans || `pstk_live_${Date.now()}`;
+          const licenseKeys = items.map((item) => ({
+            productId: item.product.id,
+            productTitle: item.product.title,
+            key: generateLicenseKey(`ARIMO-NG`),
+            licenseType: item.selectedLicense
+          }));
+          const downloads = items.map((item) => {
+            const tokenData = generateExpiringDownloadToken(orderId, item.product.id, 24);
+            return {
+              productId: item.product.id,
+              fileName: item.product.downloadFileName || `${item.product.title.replace(/\s+/g, '_')}_Package.pdf`,
+              format: item.product.fileFormats?.[0] || 'PDF & Digital Access',
+              fileSize: item.product.fileSizeBytes || '15 MB',
+              version: item.product.version || 'v2026.1',
+              downloadToken: tokenData.token,
+              downloadExpiresAt: tokenData.expiresAt
+            };
+          });
+
+          const purchase: ClientPurchase = {
+            orderId,
+            purchaseDate: new Date().toISOString(),
+            customerName: fullName,
+            customerEmail: email,
+            customerPhone: phone,
+            customerCountry: country,
+            items,
+            currency: 'NGN',
+            subtotal: totalAmount,
+            discount: 0,
+            total: totalAmount,
+            subtotalNaira: totalNaira,
+            totalNaira,
+            totalUsd,
+            paymentGateway: 'paystack',
+            paymentMethod: 'Paystack LIVE Checkout',
+            paymentReference: ref,
+            status: 'paid',
+            licenseKeys,
+            downloads
+          };
+
+          setCompletedPurchase(purchase);
+          setIsProcessing(false);
+          setIsCompleted(true);
+          onPaymentSuccess(purchase);
+        } catch (e: any) {
+          setIsProcessing(false);
+          setPaymentError(e?.message || 'Error processing digital order confirmation.');
+        }
+      },
+      onCancel: () => {
+        setIsProcessing(false);
+      }
+    });
+
+    if (!launched) {
+      setIsProcessing(false);
+    }
+  };
+
   const handleProcessPayment = (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentError(null);
@@ -307,6 +389,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     // Check if card is explicitly flagged for test failure
     if (cardNumber.replace(/\s+/g, '').startsWith('0000')) {
       handleSimulatePaymentFailure();
+      return;
+    }
+
+    // If Paystack gateway with Card tab, launch official Live Paystack Pop-up
+    if (selectedGateway === 'paystack' && payMethod === 'card') {
+      handleLaunchPaystackLivePopup();
       return;
     }
 

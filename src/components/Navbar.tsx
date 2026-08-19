@@ -20,6 +20,8 @@ import { CurrencyCode, NavTab } from '../types';
 import { WHATSAPP_COMMUNITY_URL } from '../data/mockData';
 import { CurrencySelector } from './CurrencySelector';
 import { LanguageSelector } from './LanguageSelector';
+import { AiAssistantLogo } from './AiAssistantLogo';
+import { BrandLogo } from './BrandLogo';
 import { LanguageCode, TRANSLATIONS } from '../data/translations';
 import { formatCurrency } from '../utils/currencyUtils';
 import { UserProfile } from './AuthModal';
@@ -98,32 +100,38 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between min-h-[4rem] md:min-h-[4.75rem] py-2 flex-wrap gap-2">
-          {/* Brand Logo */}
-          <div
-            onClick={() => onSelectTab('home')}
-            className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none shrink-0"
-          >
-            {/* Brand Logo Icon */}
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 p-0.5 shadow-[0_0_20px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] group-hover:scale-105 transition-all overflow-hidden">
-              <img
-                src="/arimz-logo.png"
-                alt="ARIMO STORE HUB Logo"
-                className="w-full h-full object-cover rounded-[14px]"
-                referrerPolicy="no-referrer"
+          {/* Brand Logo & Top-Left AI + Language Cluster */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Brand Logo */}
+            <div
+              onClick={() => onSelectTab('home')}
+              className="flex items-center cursor-pointer group select-none shrink-0"
+            >
+              <BrandLogo
+                size={44}
+                showText={true}
+                showSubtitle={true}
+                rounded="rounded-2xl"
               />
             </div>
 
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-base md:text-lg font-black tracking-tight text-white group-hover:text-amber-300 transition-colors">
-                  ARIMO STORE HUB
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse hidden sm:inline-block" />
-              </div>
-              <p className="text-[9px] sm:text-[10px] text-zinc-400 font-medium tracking-wide">
-                Learn AI • Design • Digital Products ($ &amp; ₦)
-              </p>
-            </div>
+            {/* AI ICON BUTTON */}
+            <button
+              id="top-left-ai-btn"
+              className="ai-glow-btn"
+              onClick={onOpenAiAssistant}
+              title="Open CH-Hub AI Designer"
+              aria-label="Open AI Assistant"
+            >
+              <Sparkles size={22} className="text-zinc-950 fill-zinc-950" />
+            </button>
+
+            {/* Premium Glassmorphic Language Selector */}
+            <LanguageSelector
+              currentLanguage={currentLanguage}
+              onLanguageChange={onLanguageChange}
+              variant="navbar"
+            />
           </div>
 
           {/* Desktop Navigation Links */}
@@ -149,31 +157,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Action Icons & Global Controls */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* ARIMZ AI Assistant Quick Button */}
-            <button
-              id="header-ai-assistant-btn"
-              onClick={onOpenAiAssistant}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-zinc-900 to-zinc-950 hover:from-zinc-850 hover:to-zinc-900 text-amber-300 border border-amber-500/40 text-xs font-black shadow-[0_0_12px_rgba(245,158,11,0.15)] transition-all cursor-pointer"
-              title="Chat with official ARIMZ AI Assistant"
-            >
-              <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-400 bg-zinc-900 shrink-0">
-                <img
-                  src="/arimz-avatar.jpg"
-                  alt="ARIMZ AI"
-                  className="w-full h-full object-cover object-top"
-                />
-                <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              </div>
-              <span className="hidden sm:inline">ARIMZ AI</span>
-            </button>
-
-            {/* Language Translator Dropdown */}
-            <LanguageSelector
-              currentLanguage={currentLanguage}
-              onLanguageChange={onLanguageChange}
-              variant="navbar"
-            />
-
             {/* Currency Selector */}
             <CurrencySelector currentCurrency={currency} onCurrencyChange={onCurrencyChange} />
 
@@ -311,14 +294,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-zinc-900 to-zinc-950 border border-amber-500/40 text-amber-300 text-xs font-black flex items-center justify-center gap-2.5 shadow-sm"
               >
-                <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-400 bg-zinc-900 shrink-0">
-                  <img
-                    src="/arimz-avatar.jpg"
-                    alt="ARIMZ AI"
-                    className="w-full h-full object-cover object-top"
-                  />
-                  <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                </div>
+                <AiAssistantLogo size={24} showPulse={true} pulseSize="sm" />
                 <span>Ask ARIMZ AI Assistant</span>
               </button>
 

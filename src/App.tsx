@@ -70,6 +70,8 @@ import { GiftCardStorePage } from './components/GiftCardStorePage';
 import { BuyGiftCardModal } from './components/BuyGiftCardModal';
 import { SecurityAlertNotification } from './components/SecurityAlertNotification';
 import { ArimzAiModal } from './components/ArimzAiModal';
+import { AiDesignerModal } from './components/AiDesignerModal';
+import { BrandLogo } from './components/BrandLogo';
 import { GiftCardItem } from './types';
 
 export default function App() {
@@ -194,6 +196,7 @@ export default function App() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
+  const [isAiDesignerOpen, setIsAiDesignerOpen] = useState(false);
   const [selectedDetailProduct, setSelectedDetailProduct] = useState<ProductItem | null>(null);
 
   // Direct checkout items
@@ -952,16 +955,8 @@ export default function App() {
 
       {/* FOOTER */}
       <footer className="mt-16 sm:mt-20 border-t border-zinc-900 bg-zinc-950/80 py-10 px-4 text-center text-xs text-zinc-500 space-y-4">
-        <div className="flex items-center justify-center gap-2.5">
-          <div className="w-7 h-7 rounded-xl overflow-hidden p-0.5 bg-gradient-to-br from-amber-400 to-amber-600 shadow-md">
-            <img
-              src="/arimz-logo.png"
-              alt="ARIMO STORE HUB Logo"
-              className="w-full h-full object-cover rounded-[10px]"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <span className="font-bold text-white text-sm">ARIMO STORE HUB</span>
+        <div className="flex items-center justify-center">
+          <BrandLogo size={32} showText={true} showSubtitle={false} rounded="rounded-xl" />
         </div>
 
         {/* Official Social Media Find Us Bar */}
@@ -1029,8 +1024,8 @@ export default function App() {
       {/* Floating Sticky WhatsApp Quick Access Button */}
       <StickyWhatsApp />
 
-      {/* Floating ARIMZ AI Assistant Quick Character Trigger */}
-      <FloatingAiAssistant onOpen={() => setIsAiAssistantOpen(true)} />
+      {/* Floating CH-Hub AI Designer Quick Trigger */}
+      <FloatingAiAssistant onOpen={() => setIsAiDesignerOpen(true)} />
 
       {/* MODALS */}
       {/* 0. 2-Step Registration & Profile Setup Modal with reCAPTCHA v2 and OTP */}
@@ -1149,6 +1144,12 @@ export default function App() {
           setCurrentTab(tab);
           setIsAiAssistantOpen(false);
         }}
+      />
+
+      {/* 8b. CH-Hub AI Designer Modal */}
+      <AiDesignerModal
+        isOpen={isAiDesignerOpen}
+        onClose={() => setIsAiDesignerOpen(false)}
       />
 
       {/* 9. Live Anti-Bot & Threat Security Alert Notifications (Instant WhatsApp & Email Alert System) */}

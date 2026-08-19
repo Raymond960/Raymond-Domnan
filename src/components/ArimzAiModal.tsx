@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, X, Bot, User, RefreshCw, Zap, ArrowRight, MessageSquare } from 'lucide-react';
+import { Sparkles, Send, ArrowLeft, RotateCcw, Copy, Check, MessageSquare, ExternalLink, Bot, User, PhoneCall, ShieldCheck } from 'lucide-react';
+import { AiAssistantLogo } from './AiAssistantLogo';
 
 interface ChatMessage {
   id: string;
@@ -11,14 +12,16 @@ interface ChatMessage {
 interface ArimzAiModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigateToTab?: (tab: 'home' | 'shop' | 'giftcards' | 'blog' | 'faq' | 'vault') => void;
+  onNavigateToTab?: (tab: 'home' | 'shop' | 'giftcards' | 'blog' | 'faq' | 'vault' | 'services') => void;
 }
 
 const QUICK_PROMPTS = [
-  'What digital templates are available in the store?',
-  'How do I access my downloads in the Vault?',
   'How do custom design bookings work?',
-  'Which payment methods are supported?'
+  'What digital templates and prompt packs are available?',
+  'How do I access my downloads in the Vault?',
+  'Which payment methods are supported in Naira & USD?',
+  'How can I earn with Data Annotation AI jobs?',
+  'How do I buy and redeem Gift Cards?'
 ];
 
 export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
@@ -30,13 +33,15 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
     {
       id: 'welcome',
       sender: 'ai',
-      text: "Hello! I'm your ARIMZ AI Assistant. How can I help you explore our templates, downloads, or custom design services today?",
+      text: "Hello! I'm your official **ARIMZ AI Assistant**.\n\nI can help you explore premium Canva templates, AI prompt packs, Data Annotation training guides, or walk you through our **step-by-step custom design bookings**.\n\nHow can I help you today?",
       timestamp: 'Just now'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,10 +50,50 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      // Focus input on open for desktop
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   }, [messages, isOpen]);
 
+  // Handle escape key to go back
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleBackToHome();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleBackToHome = () => {
+    if (onNavigateToTab) {
+      onNavigateToTab('home');
+    }
+    onClose();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCopyMessage = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleClearChat = () => {
+    setMessages([
+      {
+        id: `welcome-${Date.now()}`,
+        sender: 'ai',
+        text: "Chat cleared! How can I assist you with ARIMZ products, templates, or custom design services today?",
+        timestamp: 'Just now'
+      }
+    ]);
+  };
 
   const handleSendMessage = async (customText?: string) => {
     const textToSend = (customText || inputValue).trim();
@@ -67,30 +112,31 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
 
     try {
       const chatHistory = messages
-        .filter((m) => m.id !== 'welcome')
-        .slice(-6)
+        .filter((m) => !m.id.startsWith('welcome'))
+        .slice(-8)
         .map((m) => ({
-          user: m.sender === 'user' ? m.text : undefined,
-          ai: m.sender === 'ai' ? m.text : undefined
-        }))
-        .reduce((acc: Array<{ user: string; ai: string }>, cur) => {
-          if (cur.user) {
-            acc.push({ user: cur.user, ai: '' });
-          } else if (cur.ai && acc.length > 0) {
-            acc[acc.length - 1].ai = cur.ai;
-          }
-          return acc;
-        }, [])
-        .filter((h) => h.user && h.ai);
+          sender: m.sender,
+          text: m.text
+        }));
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s safety timeout
 
       const response = await fetch('/api/gemini/arimz-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend, chat_history: chatHistory })
+        body: JSON.stringify({ message: textToSend, chat_history: chatHistory }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+
       const data = await response.json();
-      const aiReply = data.reply || "I'm here to help you navigate ARIMZ app features and creative templates.";
+      const aiReply = data.reply || "I'm here to assist you with ARIMZ templates, downloads, and custom services!";
 
       const aiMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
@@ -102,10 +148,28 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err) {
       console.error('Error fetching ARIMZ AI reply:', err);
+      
+      // Smart instant client-side resolution if backend route is unreachable
+      let clientFallback = "I'm here to help! At **ARIMZ Store Hub**, you can purchase verified Canva templates, AI prompt packs, Data Annotation training guides, or book bespoke custom design milestones.";
+      const lower = textToSend.toLowerCase();
+      if (lower.includes("custom") || lower.includes("booking") || lower.includes("hire") || lower.includes("design")) {
+        clientFallback = `Here is how our **Custom Design Bookings** work step-by-step:
+
+1. **Step 1 — Choose Your Service**: Select your project type under **Custom Services** (Logo & Brand Identity, 3D Vector Typography, Social Media Suite, or UI/UX).
+2. **Step 2 — Submit Your Brief**: Fill out the interactive booking form or generate a brief with our **AI Design Brief Generator** detailing your colors, style, and deadline.
+3. **Step 3 — 50% Milestone Deposit**: Secure your milestone with Paystack, Flutterwave, Stripe, or Crypto.
+4. **Step 4 — Initial Concepts**: Receive your custom design directions in **48 to 72 hours** with unlimited revisions.
+5. **Step 5 — Instant Vault Delivery**: Master vector files (AI, SVG, PNG, PDF, Figma) are uploaded directly to your **Client Vault**!`;
+      } else if (lower.includes("price") || lower.includes("cost") || lower.includes("naira") || lower.includes("dollar")) {
+        clientFallback = "Our digital products start from **₦7,500 ($5)** with instant digital delivery to your permanent Client Vault. Custom design milestones start from **₦75,000 ($50)**.";
+      } else if (lower.includes("vault") || lower.includes("download")) {
+        clientFallback = "Your **Client Vault** stores all purchased items and bonus packs permanently. You can re-download your high-res vector files anytime with commercial licenses included.";
+      }
+
       const fallbackMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: 'ARIMZ Store Hub offers verified Canva templates, AI prompt packs, and custom design bookings. Let me know if you need assistance with any feature!',
+        text: clientFallback,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, fallbackMsg]);
@@ -114,170 +178,251 @@ export const ArimzAiModal: React.FC<ArimzAiModalProps> = ({
     }
   };
 
+  // Helper to format basic markdown (bold, bullet points, numbers)
+  const renderFormattedText = (text: string) => {
+    return text.split('\n').map((line, lineIdx) => {
+      // Bold rendering
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      const formattedLine = parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={partIdx} className="font-bold text-amber-300">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      return (
+        <span key={lineIdx} className="block leading-relaxed min-h-[1.25rem]">
+          {formattedLine}
+        </span>
+      );
+    });
+  };
+
   return (
-    <div id="arimz-chat" className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
-      <div id="chat-box" className="relative w-full max-w-xl bg-zinc-950 border border-amber-500/40 rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.25)] flex flex-col max-h-[88vh] overflow-hidden text-white">
-        {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-zinc-800/80 bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] bg-zinc-900 shrink-0">
-              <img
-                src="/arimz-avatar.jpg"
-                alt="ARIMZ AI Assistant"
-                className="w-full h-full object-cover object-top"
-              />
-              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border border-zinc-950" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-base sm:text-lg text-white">ARIMZ AI Assistant</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
-                  Active
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400">Official AI Helper for ARIMZ Store & Creative Bookings</p>
-            </div>
-          </div>
+    <div
+      id="arimz-chat-fullscreen"
+      className="fixed inset-0 z-50 w-full h-full min-h-[100dvh] flex flex-col bg-black text-white antialiased overflow-hidden"
+    >
+      {/* 1. TOP NAVIGATION & BRANDING HEADER (100% WIDTH) */}
+      <header className="w-full bg-zinc-950 border-b border-zinc-800/90 px-4 sm:px-6 md:px-10 py-3.5 flex items-center justify-between shrink-0 shadow-lg z-20">
+        {/* Back to Home Button */}
+        <button
+          id="ai-back-to-home-btn"
+          onClick={handleBackToHome}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-zinc-200 hover:text-white border border-zinc-700/80 transition-all cursor-pointer group shadow-sm shrink-0"
+          title="Return to ARIMZ Store Home"
+        >
+          <ArrowLeft className="w-4 h-4 text-amber-400 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-xs sm:text-sm font-bold tracking-tight">Back to Home</span>
+        </button>
 
+        {/* Center: Official ARIMZ AI Assistant Identity */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5">
+          <AiAssistantLogo size={40} showPulse={true} />
+          <div className="text-left">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+                ARIMZ AI Assistant
+                <ShieldCheck className="w-4 h-4 text-amber-400 inline" />
+              </h1>
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Online
+              </span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-zinc-400 truncate max-w-[200px] sm:max-w-md">
+              Official AI Helper for Store Assets, Vault &amp; Custom Design Bookings
+            </p>
+          </div>
+        </div>
+
+        {/* Right Action Icons */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
-            onClick={onClose}
-            className="p-2 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 transition-colors cursor-pointer"
+            onClick={handleClearChat}
+            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Clear Chat History"
           >
-            <X className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4" />
+            <span className="hidden md:inline">Reset</span>
           </button>
-        </div>
 
-        {/* Quick Suggestion Chips */}
-        <div className="px-4 py-2.5 bg-zinc-900/50 border-b border-zinc-800/60 overflow-x-auto flex gap-2 no-scrollbar">
-          {QUICK_PROMPTS.map((prompt, idx) => (
-            <button
-              key={idx}
-              disabled={isLoading}
-              onClick={() => handleSendMessage(prompt)}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-amber-300 border border-zinc-700/60 whitespace-nowrap transition-colors cursor-pointer shrink-0 disabled:opacity-50"
-            >
-              {prompt}
-            </button>
-          ))}
+          <a
+            href="https://chat.whatsapp.com/CEW43VPwEbJ3gvNOun9s9b"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Chat with Human on WhatsApp"
+          >
+            <PhoneCall className="w-4 h-4" />
+            <span className="hidden md:inline">WhatsApp</span>
+          </a>
         </div>
+      </header>
 
-        {/* Chat Message Stream */}
-        <div id="messages" className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 min-h-[280px] max-h-[440px]">
-          {/* Official AI Character Welcome Card */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-zinc-900/90 via-zinc-950 to-zinc-900/90 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-xl overflow-hidden border border-amber-400/60 shadow-lg bg-zinc-950 shrink-0">
-              <img
-                src="/arimz-character.jpg"
-                alt="ARIMZ Official AI Character"
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase mb-1">
-                <Sparkles className="w-3 h-3" /> Official ARIMZ AI
-              </div>
-              <h4 className="text-sm font-bold text-white">Ready to help you build and scale!</h4>
-              <p className="text-xs text-zinc-300 mt-1 leading-relaxed">
-                Ask me about verified Canva/vector templates, Client Vault re-downloads, pricing in Naira and USD, or custom design bookings.
-              </p>
-            </div>
+      {/* 2. QUICK PROMPTS CHIPS BAR */}
+      <div className="w-full bg-zinc-950/90 border-b border-zinc-900 px-4 sm:px-6 md:px-10 py-2.5 overflow-x-auto flex items-center gap-2 no-scrollbar shrink-0">
+        <span className="text-[11px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1 shrink-0 mr-1">
+          <Sparkles className="w-3 h-3" /> Quick Topics:
+        </span>
+        {QUICK_PROMPTS.map((prompt, idx) => (
+          <button
+            key={idx}
+            disabled={isLoading}
+            onClick={() => handleSendMessage(prompt)}
+            className="text-xs font-medium px-3.5 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-850 hover:border-amber-500/50 text-zinc-300 hover:text-amber-300 border border-zinc-800 whitespace-nowrap transition-all cursor-pointer shrink-0 disabled:opacity-50 active:scale-95"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+
+      {/* 3. FULL PAGE CHAT MESSAGE STREAM (100% HEIGHT FLEX-1) */}
+      <main className="flex-1 w-full overflow-y-auto px-4 sm:px-6 md:px-12 lg:px-24 py-6 space-y-6 max-w-5xl mx-auto">
+        {/* Welcome Character Hero Card */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-zinc-900/90 via-zinc-950 to-zinc-900/90 border border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.1)] flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+          <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md bg-zinc-950 shrink-0">
+            <img
+              src="/arimz-character.jpg"
+              alt="ARIMZ Official AI Character"
+              className="w-full h-full object-cover object-top"
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = 'none';
+              }}
+            />
           </div>
+          <div className="flex-1 space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase">
+              <Sparkles className="w-3 h-3" /> 24/7 Intelligent Support
+            </div>
+            <h2 className="text-base sm:text-lg font-black text-white">
+              Ask anything about ARIMZ Store, Templates &amp; Custom Design Bookings
+            </h2>
+            <p className="text-xs text-zinc-300 leading-relaxed max-w-2xl">
+              Ask about verified Canva templates, ChatGPT/Midjourney prompts, instant Client Vault downloads, or request step-by-step guidance on booking custom design projects.
+            </p>
+          </div>
+        </div>
 
-          {messages.map((msg) => {
-            const isUser = msg.sender === 'user';
-            return (
+        {/* Message Stream */}
+        {messages.map((msg) => {
+          const isUser = msg.sender === 'user';
+          return (
+            <div
+              key={msg.id}
+              className={`flex gap-3 sm:gap-4 ${isUser ? 'justify-end' : 'justify-start'} group`}
+            >
+              {/* AI Avatar */}
+              {!isUser && (
+                <AiAssistantLogo size={40} className="mt-0.5" />
+              )}
+
+              {/* Message Bubble */}
               <div
-                key={msg.id}
-                className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
+                className={`relative max-w-[88%] sm:max-w-[80%] rounded-3xl p-4 sm:p-5 text-xs sm:text-sm leading-relaxed shadow-lg ${
+                  isUser
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-zinc-950 font-medium rounded-tr-sm shadow-[0_4px_20px_rgba(245,158,11,0.25)]'
+                    : 'bg-zinc-900/95 border border-zinc-800 text-zinc-100 rounded-tl-sm shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
+                }`}
               >
-                {!isUser && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-amber-400/80 shadow-sm shrink-0 mt-0.5 bg-zinc-900">
-                    <img
-                      src="/arimz-avatar.jpg"
-                      alt="ARIMZ AI"
-                      className="w-full h-full object-cover object-top"
-                    />
-                  </div>
-                )}
-
-                <div
-                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-sm ${
-                    isUser
-                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-zinc-950 font-medium rounded-tr-none'
-                      : 'bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-tl-none'
-                  }`}
-                >
-                  <p className="whitespace-pre-line">{msg.text}</p>
-                  <span
-                    className={`block text-[10px] mt-1 text-right ${
-                      isUser ? 'text-zinc-900/70 font-semibold' : 'text-zinc-500'
-                    }`}
-                  >
-                    {msg.timestamp}
-                  </span>
+                <div className="space-y-1 text-inherit">
+                  {renderFormattedText(msg.text)}
                 </div>
 
-                {isUser && (
-                  <div className="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 shrink-0 mt-0.5">
-                    <User className="w-4 h-4" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                <div className="flex items-center justify-between gap-4 mt-2.5 pt-2 border-t border-white/10 text-[10px]">
+                  <span className={isUser ? 'text-zinc-950/70 font-semibold' : 'text-zinc-500'}>
+                    {msg.timestamp}
+                  </span>
 
-          {isLoading && (
-            <div className="flex gap-3 justify-start items-center">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-amber-400/80 shadow-sm shrink-0 bg-zinc-900 animate-pulse">
-                <img
-                  src="/arimz-avatar.jpg"
-                  alt="ARIMZ AI Thinking"
-                  className="w-full h-full object-cover object-top"
-                />
+                  {!isUser && (
+                    <button
+                      onClick={() => handleCopyMessage(msg.id, msg.text)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                      title="Copy response"
+                    >
+                      {copiedId === msg.id ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-400 font-bold">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-tl-none px-4 py-3 text-xs text-zinc-400 flex items-center gap-2">
-                <span>ARIMZ AI is typing...</span>
-                <span className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0.2s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0.4s]" />
-                </span>
-              </div>
+
+              {/* User Avatar */}
+              {isUser && (
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-zinc-850 border border-zinc-700 flex items-center justify-center text-amber-400 shrink-0 mt-0.5 shadow-md">
+                  <User className="w-5 h-5" />
+                </div>
+              )}
             </div>
-          )}
+          );
+        })}
 
-          <div ref={messagesEndRef} />
-        </div>
+        {/* Typing Indicator with Bouncing Gold Dots */}
+        {isLoading && (
+          <div className="flex gap-3 sm:gap-4 justify-start items-center animate-fadeIn">
+            <AiAssistantLogo size={40} className="animate-pulse" />
+            <div className="bg-zinc-900 border border-amber-500/30 rounded-3xl rounded-tl-sm px-5 py-3.5 text-xs text-zinc-300 flex items-center gap-3 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+              <span className="font-semibold text-amber-400">ARIMZ AI is typing...</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" />
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce [animation-delay:0.2s]" />
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce [animation-delay:0.4s]" />
+              </span>
+            </div>
+          </div>
+        )}
 
-        {/* Input Bar */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage();
-          }}
-          className="p-3 sm:p-4 bg-zinc-950 border-t border-zinc-800/80 flex items-center gap-2"
-        >
-          <input
-            id="user-input"
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask me anything..."
-            className="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-zinc-800 focus:border-amber-400 text-white placeholder:text-zinc-500 text-xs sm:text-sm outline-none transition-all"
-            disabled={isLoading}
-          />
+        <div ref={messagesEndRef} />
+      </main>
 
-          <button
-            id="send-msg-btn"
-            type="submit"
-            disabled={isLoading || !inputValue.trim()}
-            className="p-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-950 font-bold transition-all shadow-md cursor-pointer shrink-0"
-            title="Send Message"
+      {/* 4. FULL WIDTH RESPONSIVE BOTTOM INPUT BAR */}
+      <footer className="w-full bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800/90 px-4 sm:px-6 md:px-12 lg:px-24 py-3 sm:py-4 shrink-0 shadow-2xl z-20">
+        <div className="max-w-5xl mx-auto">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="flex items-center gap-2 sm:gap-3"
           >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
-      </div>
+            <input
+              ref={inputRef}
+              id="arimz-ai-input"
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Ask ARIMZ AI anything (e.g. 'How do custom design bookings work?')..."
+              className="flex-1 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl bg-zinc-900 border border-zinc-750 focus:border-amber-400 focus:bg-zinc-850 text-white placeholder:text-zinc-500 text-xs sm:text-sm outline-none transition-all shadow-inner"
+              disabled={isLoading}
+            />
+
+            <button
+              id="arimz-ai-send-btn"
+              type="submit"
+              disabled={isLoading || !inputValue.trim()}
+              className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-950 font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer shrink-0 flex items-center gap-2"
+              title="Send Message"
+            >
+              <span className="hidden sm:inline text-xs font-black uppercase tracking-wider">Send</span>
+              <Send className="w-4 h-4 text-zinc-950" />
+            </button>
+          </form>
+
+          <div className="flex items-center justify-between px-2 pt-2 text-[10px] text-zinc-500">
+            <span>Powered by ARIMZ Neural Design Engine &amp; Gemini</span>
+            <span className="hidden sm:inline">Press Enter ↵ to send</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

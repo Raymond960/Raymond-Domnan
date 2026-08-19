@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { BrandLogo } from './BrandLogo';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -44,14 +45,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           {/* Subtle Ambient Pulse Ring */}
           <div className="absolute -inset-4 rounded-3xl bg-[#FFD700]/20 blur-2xl animate-pulse" />
           
-          <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-3xl p-1 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 shadow-[0_0_50px_rgba(255,215,0,0.5)] transform transition-all duration-1000 animate-[pulse_2.2s_ease-in-out_infinite]">
-            <img
-              src="/arimz-logo.png"
-              alt="ARIMO STORE HUB Logo"
-              className="w-full h-full object-cover rounded-[22px]"
-              referrerPolicy="no-referrer"
-            />
-          </div>
+          <BrandLogo
+            size={120}
+            rounded="rounded-3xl"
+            className="shadow-[0_0_50px_rgba(255,215,0,0.5)] transform transition-all duration-1000 animate-[pulse_2.2s_ease-in-out_infinite]"
+          />
         </div>
 
         {/* Elegant White Typography: "ARIMO STORE HUB" */}

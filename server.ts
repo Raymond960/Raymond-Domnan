@@ -90,15 +90,23 @@ app.get("/api/waitlist", (req, res) => {
   res.json({ success: true, count: waitlistDatabase.length, records: waitlistDatabase });
 });
 
-// Initialize Gemini SDK
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: {
-    headers: {
-      "User-Agent": "arimo-store-hub",
-    },
-  },
-});
+// Lazy-initialized Gemini Client
+let geminiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  if (!geminiClient) {
+    geminiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "arimo-store-hub",
+        },
+      },
+    });
+  }
+  return geminiClient;
+}
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -115,14 +123,188 @@ function getArimzKnowledge(): string {
   } catch (err) {
     console.warn("Could not read arimz_faq.txt, using embedded knowledge:", err);
   }
-  return `ARIMZ Store Hub offers verified Canva templates, vector illustration kits, AI prompt packs, and custom design bookings. Prices start from ₦7,500 ($5). Instant downloads are available in the Client Vault. Payments via Paystack, Flutterwave, and Stripe. Support available on WhatsApp.`;
+  return `ARIMZ Store Hub offers verified Canva templates, vector illustration kits, AI prompt packs, Data Annotation training guides, and custom design bookings. Prices start from ₦7,500 ($5). Instant downloads in Client Vault. Payments via Paystack, Flutterwave, Stripe, and Crypto. 24/7 WhatsApp support.`;
 }
 
-const ARIMZ_SYSTEM = `You are ARIMZ AI Assistant.
-You help users with the ARIMZ app. 
-Be friendly, helpful, and Nigerian-friendly.
-Keep answers short: 2-3 sentences. 
-If you don't know ARIMZ features, say "Let me connect you to a human".`;
+const ARIMZ_SYSTEM_PROMPT = `You are ARIMZ AI Assistant, the official, intelligent, and warm AI expert for ARIMZ Store Hub (founded by Raymond Arimo).
+
+CORE DIRECTIVES:
+1. Answer ANY question asked by the user intelligently, clearly, and contextually. Never repeat generic or canned phrases.
+2. If the user asks "How do custom design bookings work?" or about custom services, explain this exact 5-step process:
+   • Step 1 — Select Category: Choose your service from Custom Services (Brand Identity & Logo, 3D & Vector Typography, UI/UX Design, Social Media Kit, or Motion Graphics).
+   • Step 2 — Project Brief: Submit your requirements, brand colors, style references, and deadline using the custom booking form or our AI Design Brief Generator.
+   • Step 3 — Milestone Confirmation: Confirm with a 50% milestone deposit via Paystack, Flutterwave, Stripe, or Crypto.
+   • Step 4 — Drafts & Revisions: Receive initial creative concepts in 48–72 hours with unlimited revisions until 100% satisfied.
+   • Step 5 — Vault Delivery: Final vector and raw master files (AI, SVG, PNG, PDF, Figma, 3D renders) are delivered straight into your permanent Client Vault.
+3. If the user asks about digital templates, AI prompt packs, or remote data annotation guides:
+   • Describe the premium curated ChatGPT/Midjourney prompts, luxury Canva templates, and $15–$30/hr remote AI training guides starting from ₦7,500 ($5).
+   • Note that instant digital downloads unlock right after payment and remain in the Client Vault forever.
+4. If the user asks about payments & currency:
+   • Naira (₦): Paystack & Flutterwave (Debit Card, Bank Transfer, USSD, OPay, Chipper).
+   • USD ($), GBP, CAD: Stripe (Cards, Apple Pay, Google Pay) and Crypto (USDT, BTC).
+   • Gift Cards: Instant digital redemption with custom codes.
+5. If the user asks general questions about AI prompting, design tips, creative careers, or technology:
+   • Provide expert, step-by-step guidance, actionable prompt formulas, or helpful design principles.
+6. Tone: Warm, professional, helpful, modern, and encouraging. Format responses with clean bullet points and short readable paragraphs.`;
+
+// Intelligent contextual response engine
+function generateSmartArimzReply(userMsg: string): string {
+  const query = userMsg.toLowerCase().trim();
+
+  // 1. Custom Design Bookings
+  if (
+    query.includes("custom design") ||
+    query.includes("booking") ||
+    query.includes("custom service") ||
+    query.includes("hire") ||
+    query.includes("how do custom") ||
+    query.includes("bespoke") ||
+    query.includes("logo design") ||
+    query.includes("order custom")
+  ) {
+    return `Here is how our **Custom Design Bookings** work step-by-step:
+
+1. **Step 1 — Choose Your Service**: Head over to the **Custom Services** tab and select your project type (Logo & Brand Identity, 3D Vector Typography, Social Media Suite, UI/UX Design, or Motion Graphics).
+2. **Step 2 — Submit Your Brief**: Fill out the interactive booking form or use our **AI Design Brief Generator** to specify your brand colors, style preferences, target audience, and deadline.
+3. **Step 3 — 50% Milestone Deposit**: Lock in your project queue with a secure 50% milestone deposit via Paystack, Flutterwave, Stripe, or Crypto.
+4. **Step 4 — Review Initial Concepts**: Receive your tailored design directions within **48 to 72 hours**. You enjoy unlimited revisions until you are 100% thrilled with the outcome.
+5. **Step 5 — Instant Vault Delivery**: All final master vector files (AI, SVG, PNG, PDF, Figma, and high-res 3D assets) are permanently uploaded to your **Client Vault** for instant download.
+
+Would you like help preparing a design brief for your project right now?`;
+  }
+
+  // 2. Payments & Gateways (Checked before pricing)
+  if (
+    query.includes("payment") ||
+    query.includes("paystack") ||
+    query.includes("flutterwave") ||
+    query.includes("stripe") ||
+    query.includes("opay") ||
+    query.includes("bank transfer") ||
+    query.includes("crypto") ||
+    query.includes("usdt") ||
+    query.includes("how to pay") ||
+    query.includes("checkout") ||
+    query.includes("gateway")
+  ) {
+    return `We support multiple instant, 256-bit SSL encrypted payment channels:
+
+• **Nigeria & Africa (NGN)**: Paystack & Flutterwave (Debit Cards, Bank Transfer, USSD, OPay, Chipper Cash).
+• **International (USD / GBP / CAD / EUR)**: Stripe (Visa, Mastercard, American Express, Apple Pay, Google Pay).
+• **Cryptocurrency**: USDT (TRC-20 / ERC-20) and Bitcoin for decentralized global checkout.
+• **ARIMZ Digital Gift Cards**: Redeem store credit directly using your 16-character code at checkout.`;
+  }
+
+  // 3. Templates & Digital Products
+  if (
+    query.includes("template") ||
+    query.includes("canva") ||
+    query.includes("product") ||
+    query.includes("store") ||
+    query.includes("what do you sell") ||
+    query.includes("shop") ||
+    query.includes("digital asset")
+  ) {
+    return `At **ARIMZ Store Hub**, we provide high-converting digital assets for creators, designers, and entrepreneurs:
+
+• **Luxury Canva Templates**: Editable social media kits, luxury pitch decks, carousel bundles, and brand guidelines ready for one-click customization.
+• **AI Prompt Engineering Kits**: Master prompt packs for ChatGPT, Midjourney, Claude, and Gemini to generate photorealistic imagery, luxury branding, and high-converting marketing copy.
+• **Master Vector Illustration Kits**: Scalable 3D typography, abstract gradients, and modern UI icon packs in SVG, AI, and PNG formats.
+• **Data Annotation Mastery Guides**: Complete blueprints for securing $15–$30/hr remote AI trainer jobs worldwide.
+
+All purchases start from just **₦7,500 ($5)** with instant digital delivery to your permanent **Client Vault**!`;
+  }
+
+  // 4. Pricing & Currency
+  if (
+    query.includes("price") ||
+    query.includes("pricing") ||
+    query.includes("cost") ||
+    query.includes("how much") ||
+    query.includes("rate") ||
+    query.includes("naira") ||
+    query.includes("dollar") ||
+    query.includes("currency")
+  ) {
+    return `Our pricing is transparent and multi-currency enabled:
+
+• **Starter Digital Kits & Prompt Packs**: Starting from **₦7,500 ($5)**.
+• **Pro Creator & Luxury Canva Bundles**: **₦12,500 – ₦25,000 ($8 – $15)**.
+• **Remote AI Job & Data Annotation Blueprints**: **₦15,000 – ₦30,000 ($10 – $20)**.
+• **Custom Design & Brand Identity Bookings**: Tailored milestones starting from **₦75,000 ($50)** with a 50% deposit structure.
+
+You can toggle between **NGN (₦)** and **USD ($)** in the top navigation bar at any time!`;
+  }
+
+  // 6. Data Annotation & Remote Jobs
+  if (
+    query.includes("data annotation") ||
+    query.includes("remote job") ||
+    query.includes("ai trainer") ||
+    query.includes("rlhf") ||
+    query.includes("earn in dollar") ||
+    query.includes("work from home")
+  ) {
+    return `Our **Data Annotation & AI Remote Job Blueprint** teaches you how to earn **$15 to $30 per hour** from Nigeria and worldwide:
+
+• **What it covers**: High-paying AI training platforms (Outlier, Remotasks, Alignerr, DataAnnotation.tech, OneForma).
+• **Assessment Mastery**: Step-by-step answers and evaluation frameworks to pass entry tests on your first attempt.
+• **Payout Setup**: Guides for receiving direct USD payouts into Nigerian and African bank accounts via Geegpay, Grey, or Payoneer.
+
+You can find the training guide in our Store section under "Data Annotation"!`;
+  }
+
+  // 7. Gift Cards
+  if (query.includes("gift card") || query.includes("redeem") || query.includes("voucher")) {
+    return `You can buy, gift, or redeem **ARIMZ Digital Gift Cards**:
+
+• **Instant Delivery**: Generated immediately with custom balance amounts in Naira or Dollars.
+• **Gifting**: Send personalized cards with custom recipient names and greeting messages.
+• **Redemption**: Click **Gift Cards** in the menu to check your balance or apply the code directly during product checkout!`;
+  }
+
+  // 8. Human Support / WhatsApp / Contact
+  if (
+    query.includes("human") ||
+    query.includes("support") ||
+    query.includes("talk to") ||
+    query.includes("whatsapp") ||
+    query.includes("contact") ||
+    query.includes("help") ||
+    query.includes("raymond")
+  ) {
+    return `Need direct human assistance? Our team is available 24/7:
+
+• **WhatsApp**: Click the floating green WhatsApp icon or chat directly at **+234-814-ARIMZ**.
+• **Email Support**: support@arimz.com
+• **Lead Designer**: Raymond Arimo (Direct design consultations & corporate branding).
+
+How else can I assist you right now?`;
+  }
+
+  // 9. AI Prompts / Writing Help
+  if (query.includes("prompt") || query.includes("midjourney") || query.includes("chatgpt") || query.includes("generate")) {
+    return `Here is our signature **ARIMZ Prompt Framework** for generating high-end results:
+
+\`[Role] + [Industry Archetype] + [Target Audience] + [Visual/Copy Style] + [Specific Constraints] + [Output Format]\`
+
+*Example prompt for luxury branding*:
+*"You are an elite brand strategist for a fintech company in Lagos. Create 3 distinct visual brand concepts with Obsidian Black & Brushed Gold color palettes, modern typography pairings, and a 1-sentence brand manifesto."*
+
+You can download our complete library of 500+ curated prompts directly from the Store tab!`;
+  }
+
+  // General smart response
+  return `Welcome to **ARIMZ Store Hub**! I'm your dedicated AI Assistant.
+
+I can help you with:
+• **Custom Design Bookings** (Brand Identity, 3D Typography, UI/UX, Motion Graphics).
+• **Instant Downloads** (Luxury Canva templates, AI Prompt Packs, Data Annotation guides).
+• **Payment & Pricing Info** (Support for Naira ₦ via Paystack/OPay, and USD $ via Stripe & Crypto).
+• **Client Vault Guidance** (Accessing and re-downloading your purchased assets).
+
+What would you like to explore today?`;
+}
 
 const handleArimzAssistant = async (req: express.Request, res: express.Response) => {
   try {
@@ -146,41 +328,39 @@ const handleArimzAssistant = async (req: express.Request, res: express.Response)
         .join("\n");
     }
 
-    const arimzKnowledge = getArimzKnowledge();
+    const client = getGeminiClient();
 
-    if (!process.env.GEMINI_API_KEY) {
-      // Smart contextual fallback when API key is being provisioned
-      const lower = userMsg.toLowerCase();
-      let fallback = "Welcome to ARIMZ Store Hub! You can explore verified Canva and Vector templates, AI prompt bundles, and data annotation guides with instant digital downloads.";
-      if (lower.includes("price") || lower.includes("cost") || lower.includes("naira") || lower.includes("dollar")) {
-        fallback = "Our digital products start from ₦7,500 ($5) with support for Paystack, Flutterwave, and global Stripe payments. Instant license keys and vector files unlock immediately after checkout!";
-      } else if (lower.includes("custom") || lower.includes("hire") || lower.includes("design") || lower.includes("booking")) {
-        fallback = "You can book custom branding, 3D typography, and bespoke vector illustration services directly via our Custom Booking tab. We deliver within 48 to 72 hours!";
-      } else if (lower.includes("vault") || lower.includes("download") || lower.includes("file")) {
-        fallback = "All your purchased assets and free bonus prompt kits are permanently stored in your Client Vault for instant re-download. You can access it anytime from the top navigation bar.";
-      } else if (lower.includes("human") || lower.includes("support") || lower.includes("talk") || lower.includes("whatsapp")) {
-        fallback = "Let me connect you to a human. You can chat with our team directly via the WhatsApp button at the bottom right or reach out to support@arimz.com!";
+    if (client) {
+      try {
+        const arimzKnowledge = getArimzKnowledge();
+        const prompt = `ARIMZ STORE HUB KNOWLEDGE:\n${arimzKnowledge}\n\n${historyContext ? historyContext + "\n\n" : ""}User Query: ${userMsg}\n\nProvide an intelligent, helpful, and contextual answer.`;
+
+        const response = await client.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: prompt,
+          config: {
+            systemInstruction: ARIMZ_SYSTEM_PROMPT,
+          },
+        });
+
+        const reply = response.text?.trim();
+        if (reply && reply.length > 0) {
+          return res.json({ success: true, reply });
+        }
+      } catch (geminiError: any) {
+        console.warn("Gemini API call failed, using smart contextual engine:", geminiError?.message || geminiError);
       }
-      return res.json({ success: true, reply: fallback });
     }
 
-    const prompt = `Use this info about ARIMZ:\n${arimzKnowledge}\n\n${historyContext ? historyContext + "\n\n" : ""}User: ${userMsg}`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.7-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: ARIMZ_SYSTEM,
-      },
-    });
-
-    const reply = response.text?.trim() || "Let me connect you to a human";
-    return res.json({ success: true, reply });
+    // Dynamic contextual fallback
+    const dynamicReply = generateSmartArimzReply(userMsg);
+    return res.json({ success: true, reply: dynamicReply });
   } catch (error: any) {
     console.error("ARIMZ AI Assistant error:", error);
+    const userMsg = req.body.message || req.body.user_msg || "";
     return res.json({
       success: true,
-      reply: "Let me connect you to a human"
+      reply: generateSmartArimzReply(userMsg)
     });
   }
 };
@@ -238,7 +418,15 @@ Return a strictly valid JSON object with the following schema:
   "estimatedTimeline": "e.g. 2-4 business days with 3 revision rounds"
 }`;
 
-    const response = await ai.models.generateContent({
+    const client = getGeminiClient();
+    if (!client) {
+      return res.status(500).json({
+        success: false,
+        error: "GEMINI_API_KEY is not configured",
+      });
+    }
+
+    const response = await client.models.generateContent({
       model: "gemini-3.7-flash",
       contents: prompt,
       config: {
@@ -301,7 +489,15 @@ Return a strictly valid JSON object with:
   "quoteOrBullet": "A short callout or testimonial line"
 }`;
 
-    const response = await ai.models.generateContent({
+    const client = getGeminiClient();
+    if (!client) {
+      return res.status(500).json({
+        success: false,
+        error: "GEMINI_API_KEY is not configured",
+      });
+    }
+
+    const response = await client.models.generateContent({
       model: "gemini-3.7-flash",
       contents: aiPrompt,
       config: {
@@ -316,6 +512,235 @@ Return a strictly valid JSON object with:
     return res.status(500).json({
       success: false,
       error: error.message || "Failed to generate design concept",
+    });
+  }
+});
+
+// CH-Hub AI Designer Endpoint: Generates Images, Copy/Scripts, and Midjourney Prompts
+app.post("/api/ai-designer/generate", async (req, res) => {
+  try {
+    const { prompt: userPrompt, mode = "auto", style = "modern luxury" } = req.body;
+
+    if (!userPrompt || typeof userPrompt !== "string" || !userPrompt.trim()) {
+      return res.status(400).json({ success: false, error: "Prompt is required" });
+    }
+
+    const cleanPrompt = userPrompt.trim();
+    const lowerPrompt = cleanPrompt.toLowerCase();
+
+    // Determine target mode if 'auto'
+    let resolvedMode: "image" | "text" | "prompt" = "text";
+
+    if (mode === "image" || mode === "text" || mode === "prompt") {
+      resolvedMode = mode;
+    } else {
+      // Auto-detect mode from prompt intent
+      const isPromptIntent =
+        lowerPrompt.includes("midjourney") ||
+        lowerPrompt.includes("dall-e") ||
+        lowerPrompt.includes("dalle") ||
+        lowerPrompt.includes("flux") ||
+        lowerPrompt.includes("prompt for") ||
+        lowerPrompt.includes("generate a prompt") ||
+        lowerPrompt.includes("ai prompt");
+
+      const isImageIntent =
+        lowerPrompt.includes("flyer") ||
+        lowerPrompt.includes("image") ||
+        lowerPrompt.includes("poster") ||
+        lowerPrompt.includes("logo") ||
+        lowerPrompt.includes("design a") ||
+        lowerPrompt.includes("picture") ||
+        lowerPrompt.includes("banner") ||
+        lowerPrompt.includes("graphic") ||
+        lowerPrompt.includes("status for") ||
+        lowerPrompt.includes("thumbnail") ||
+        lowerPrompt.includes("wallpaper");
+
+      if (isPromptIntent) {
+        resolvedMode = "prompt";
+      } else if (isImageIntent) {
+        resolvedMode = "image";
+      } else {
+        resolvedMode = "text";
+      }
+    }
+
+    const client = getGeminiClient();
+
+    // 1. IMAGE GENERATION LOGIC
+    if (resolvedMode === "image") {
+      let generatedImageUrl: string | null = null;
+      let companionText: string = "";
+
+      if (client) {
+        try {
+          // Attempt Image Generation with gemini-3.1-flash-lite-image
+          const imgResponse = await client.models.generateContent({
+            model: "gemini-3.1-flash-lite-image",
+            contents: {
+              parts: [{ text: `${cleanPrompt}, professional graphic design, high resolution, ${style}, commercial aesthetic` }]
+            },
+            config: {
+              imageConfig: {
+                aspectRatio: "1:1"
+              }
+            }
+          });
+
+          for (const candidate of imgResponse.candidates || []) {
+            for (const part of candidate.content?.parts || []) {
+              if (part.inlineData?.data) {
+                generatedImageUrl = `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
+              } else if (part.text) {
+                companionText += part.text + " ";
+              }
+            }
+          }
+        } catch (imgError: any) {
+          console.warn("Direct image generation attempt failed, fallback to description:", imgError?.message);
+        }
+      }
+
+      // If direct image model couldn't produce raw binary or key is mock, generate a rich visual design SVG card
+      if (!generatedImageUrl) {
+        // Generate rich companion text and SVG artwork with Gemini
+        let description = `High-impact visual concept for: "${cleanPrompt}".`;
+        let palette = ["#FFC107", "#09090b", "#18181b", "#ffffff"];
+        let headline = cleanPrompt.slice(0, 32);
+
+        if (client) {
+          try {
+            const textResponse = await client.models.generateContent({
+              model: "gemini-3.7-flash",
+              contents: `The user wants an image/flyer design for: "${cleanPrompt}".
+Provide:
+1. A punchy headline and design summary.
+2. Suggested color palette (Hex codes).
+3. Layout breakdown and Canva/Photoshop production instructions.
+4. Midjourney prompt string they can also use.
+Format with clean bullet points.`,
+              config: {
+                systemInstruction: "You are the Lead Creative Director of CH-Hub AI Designer. Be inspiring, precise, and practical."
+              }
+            });
+            description = textResponse.text?.trim() || description;
+          } catch (err) {
+            console.warn("Companion text error:", err);
+          }
+        }
+
+        return res.json({
+          success: true,
+          resultType: "image",
+          title: `Visual Design Concept: ${cleanPrompt.slice(0, 40)}`,
+          promptUsed: cleanPrompt,
+          content: description,
+          imageUrl: null, // Client will render visual preview canvas & download option
+          suggestedPalette: palette,
+          headline: headline,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return res.json({
+        success: true,
+        resultType: "image",
+        title: `Design: ${cleanPrompt.slice(0, 40)}`,
+        promptUsed: cleanPrompt,
+        imageUrl: generatedImageUrl,
+        content: companionText || `Generated design concept for "${cleanPrompt}". Ready for high-resolution download.`,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // 2. PROMPT GENERATION LOGIC (Midjourney, DALL-E, Flux)
+    if (resolvedMode === "prompt") {
+      let promptOutput = "";
+      if (client) {
+        try {
+          const response = await client.models.generateContent({
+            model: "gemini-3.7-flash",
+            contents: `Generate 3 world-class AI Image Prompts (Midjourney v6.1, DALL-E 3, and Flux Pro) for the following user request: "${cleanPrompt}".
+
+Format your response cleanly:
+### 1. Midjourney v6.1 Master Prompt
+\`[Complete prompt with lighting, camera angle, aesthetic keywords, --ar 16:9 or 1:1, --v 6.1 --style raw]\`
+
+### 2. DALL-E 3 / ChatGPT Prompt
+\`[Detailed descriptive prompt optimized for OpenAI DALL-E]\`
+
+### 3. Flux / Photorealistic Prompt
+\`[Hyper-detailed aesthetic prompt with color grading and 8k render keywords]\`
+
+### 💡 Pro Design Tips
+• Recommended aspect ratios
+• Color palette suggestions
+• Negative prompts (what to avoid)`,
+            config: {
+              systemInstruction: "You are the world's leading Prompt Engineer at CH-Hub AI Studio. Deliver exact, copy-pasteable, flawless prompts."
+            }
+          });
+          promptOutput = response.text?.trim() || "";
+        } catch (promptErr: any) {
+          console.warn("Gemini prompt error:", promptErr);
+        }
+      }
+
+      if (!promptOutput) {
+        promptOutput = `### 1. Midjourney v6.1 Master Prompt\n\`${cleanPrompt}, cinematic lighting, photorealistic 8k octane render, luxury gold and obsidian tones, hyper-detailed, professional commercial composition --ar 1:1 --v 6.1 --style raw\`\n\n### 2. DALL-E 3 Prompt\n\`A high-end modern visual showing ${cleanPrompt} with clean studio lighting, sophisticated color contrast, and premium aesthetic minimalism.\`\n\n### 💡 Pro Tip\nUse aspect ratio \`--ar 9:16\` for TikTok/WhatsApp status or \`--ar 1:1\` for Instagram feeds.`;
+      }
+
+      return res.json({
+        success: true,
+        resultType: "prompt",
+        title: `AI Image Prompt: ${cleanPrompt.slice(0, 40)}`,
+        promptUsed: cleanPrompt,
+        content: promptOutput,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // 3. TEXT / AD COPY / SCRIPT GENERATION LOGIC
+    let textOutput = "";
+    if (client) {
+      try {
+        const response = await client.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: `Create high-converting copy, marketing scripts, captions, or product descriptions for: "${cleanPrompt}".
+
+Structure the output with:
+1. **Hook & Headline Options** (3 variations)
+2. **Main Ad Scripts / Body Copy** (Engaging, persuasive, benefits-focused)
+3. **Engaging Social Media Captions & Hashtags** (Ready for TikTok, Instagram & WhatsApp)
+4. **Call to Action (CTA)** that converts viewers into buyers.`,
+          config: {
+            systemInstruction: "You are CH-Hub's elite direct-response copywriter and marketing strategist. Produce viral, punchy, high-converting Nigerian and global ad content."
+          }
+        });
+        textOutput = response.text?.trim() || "";
+      } catch (err: any) {
+        console.warn("Gemini text copy error:", err);
+      }
+    }
+
+    if (!textOutput) {
+      textOutput = `### 🔥 Viral Headlines\n1. "Upgrade Your Digital Game with ${cleanPrompt} Today!"\n2. "The #1 Secret Creators Use for ${cleanPrompt}."\n3. "Instant Access: Get Started in Under 60 Seconds."\n\n### 📱 High-Converting Ad Script\n"Stop wasting hours trying to do this from scratch. With this proven blueprint, you get instant templates, step-by-step guidance, and guaranteed results.\n\nClick the link in bio to get yours now before the 50% discount ends!"\n\n### 🚀 WhatsApp & Instagram Caption\nReady to scale? Tap the link to claim your instant download pack today! #DigitalProducts #AIContent #CreatorEconomy #ArimoStore`;
+    }
+
+    return res.json({
+      success: true,
+      resultType: "text",
+      title: `Copy & Script: ${cleanPrompt.slice(0, 40)}`,
+      promptUsed: cleanPrompt,
+      content: textOutput,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error("AI Designer generation error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to generate design output",
     });
   }
 });

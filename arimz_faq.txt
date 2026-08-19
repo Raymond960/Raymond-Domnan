@@ -1,25 +1,31 @@
 # ARIMZ OFFICIAL FAQ & KNOWLEDGE BASE
 
 [STORE & PLATFORM OVERVIEW]
-- Platform: ARIMZ Digital Asset & Design Studio Hub.
-- What we sell: Premium verified Canva templates, vector illustration kits, AI prompt packs, Data Annotation training guides, and high-impact social media kits.
-- Currency & Pricing: Prices are listed in NGN (Nigerian Naira) and USD. Starting from ₦7,500 ($5).
+- Platform: ARIMZ Digital Asset & Design Studio Hub (Founder: Raymond Arimo).
+- What we sell: Premium verified Canva templates, master vector illustration kits, ChatGPT/Midjourney AI prompt packs, Data Annotation training guides ($15–$30/hr remote jobs), luxury branding bundles, and custom design services.
+- Currency & Pricing: Prices are listed in NGN (Nigerian Naira) and USD ($). Starting from ₦7,500 ($5).
 - Delivery: Instant digital download + permanent storage in your Client Vault immediately upon verified payment.
 
+[CUSTOM DESIGN BOOKINGS & SERVICES - STEP BY STEP]
+How custom design bookings work:
+1. Step 1 - Choose Service: Browse to the "Custom Services" / "Custom Bookings" section and choose your project category (Brand Identity & Logo, 3D & Vector Typography, UI/UX Web Design, Social Media Kit, or Motion Graphics).
+2. Step 2 - Submit Project Brief: Fill out the interactive booking form or use our built-in AI Design Brief Generator to describe your project scope, target audience, brand colors, and deadline.
+3. Step 3 - Milestone Deposit & Confirmation: Confirm your booking with a 50% milestone deposit via Paystack, Flutterwave, Stripe, or Crypto.
+4. Step 4 - Draft Review & Iteration: Receive your initial custom concepts within 48 to 72 hours. We offer unlimited revisions until you are 100% satisfied.
+5. Step 5 - Final Delivery: Final master source files (AI, SVG, PNG, PDF, Figma, 3D renders) are delivered directly to your permanent Client Vault for instant download.
+
 [PAYMENTS & CHECKOUT]
-- Supported Gateways: Paystack (Cards, Bank Transfer, USSD, OPay, Chipper), Flutterwave (Barter, Mobile Money, Cards), Stripe (Global USD/GBP/EUR Cards, Apple Pay, Google Pay).
-- Payment Confirmation: Automatic webhook & client receipt verification with cryptographic receipt hash.
-- Gift Cards: Users can purchase, gift, and redeem ARIMZ Gift Cards directly on the Gift Card Store page with instant digital codes.
+- Supported Gateways: Paystack (Cards, Bank Transfer, USSD, OPay, Chipper), Flutterwave (Barter, Mobile Money, Cards), Stripe (Global USD/GBP/EUR Cards, Apple Pay, Google Pay), and Crypto (USDT, BTC).
+- Instant Verification: Instant automated receipt generation and Client Vault unlock.
+- Gift Cards: Buy, gift, or redeem ARIMZ Gift Cards with unique redemption codes.
 
 [CLIENT VAULT & DOWNLOADS]
-- Client Vault: Every customer gets a permanent Vault where all purchased items and bonus kits can be re-downloaded at any time without expiry.
-- License Type: Commercial license for client work, personal branding, and marketing materials (no direct resale of raw source files).
+- Client Vault: Every customer gets a permanent Vault where all purchased assets and free bonus kits are stored forever for unlimited re-downloads.
+- Commercial License: Included with every product for personal branding, marketing, and client work.
 
-[CUSTOM DESIGN BOOKINGS & SERVICES]
-- Services Offered: Custom 3D & Vector Typography, Full Brand Identity Kits, Bespoke Data Annotation Datasets, and Motion Graphics.
-- Turnaround Time: 48 to 72 hours for standard custom milestones.
-- Deposit & Brief: Clients fill out the interactive Custom Booking form and can use the built-in AI Design Brief & Concept Generator to outline their style preferences and brand colors.
+[DATA ANNOTATION & AI COACHING]
+- Remote AI Training Guides: Comprehensive step-by-step guides for landing $15–$30/hr remote data annotation jobs (RLHF, prompt evaluation, model grading) from Nigeria and worldwide.
 
-[SUPPORT & ESCALATION]
-- Human Support: Available 24/7 via the green WhatsApp floating button or email at support@arimz.com / WhatsApp line +234-814-ARIMZ.
-- Unknown Questions Policy: If an inquiry cannot be answered by ARIMZ features, immediately connect the user to a human agent.
+[SUPPORT & CONTACT]
+- 24/7 WhatsApp: Available via the floating button or +234-814-ARIMZ.
+- Email: support@arimz.com.

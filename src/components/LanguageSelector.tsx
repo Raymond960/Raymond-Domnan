@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Languages, ChevronDown, Check, Globe } from 'lucide-react';
-import { LANGUAGES, LanguageCode, LanguageOption } from '../data/translations';
+import { ChevronDown, Check, Search, X } from 'lucide-react';
+import { LANGUAGES, LanguageCode } from '../data/translations';
 
 interface LanguageSelectorProps {
   currentLanguage: LanguageCode;
@@ -16,6 +16,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const activeLang = LANGUAGES.find((l) => l.code === currentLanguage) || LANGUAGES[0];
 
@@ -29,129 +30,173 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    } else {
+      setSearchQuery('');
+    }
+  }, [isOpen]);
+
   const filteredLanguages = LANGUAGES.filter(
     (l) =>
       l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       l.nativeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.region.toLowerCase().includes(searchQuery.toLowerCase())
+      l.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      l.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div ref={dropdownRef} className="relative inline-block text-left">
+    <div ref={dropdownRef} className="relative inline-block text-left select-none">
+      {/* 3. EN Pill Button */}
       <button
+        id="language-selector-pill-btn"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none ${
-          variant === 'navbar'
-            ? 'bg-zinc-900/90 border-amber-500/30 hover:border-amber-400 text-zinc-100 hover:text-white shadow-sm'
-            : variant === 'compact'
-            ? 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white text-xs'
-            : 'bg-zinc-900 border-zinc-700 text-xs text-zinc-300'
-        }`}
-        title="Translate Language"
+        className="group flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer select-none"
+        style={{
+          background: '#FFC107',
+          color: '#000000',
+          padding: '6px 14px',
+          borderRadius: '20px',
+          fontWeight: 700,
+          boxShadow: isOpen ? '0 0 15px rgba(255,193,7,0.8)' : '0 2px 10px rgba(255,193,7,0.4)',
+          border: 'none',
+          fontSize: '13px'
+        }}
+        title="Select Language"
+        aria-label="Select Language"
       >
-        <Languages className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-        <span className="text-xs font-bold flex items-center gap-1">
-          <span>{activeLang.flag}</span>
-          <span className="hidden sm:inline">{activeLang.name}</span>
-          <span className="sm:hidden">{activeLang.code.toUpperCase()}</span>
+        <span className="text-sm leading-none transition-transform duration-300 group-hover:scale-125">
+          🌍
+        </span>
+        <span className="font-bold tracking-wide uppercase text-black">
+          {activeLang.code.toUpperCase()}
         </span>
         <ChevronDown
-          className={`w-3 h-3 text-zinc-400 transition-transform ${isOpen ? 'rotate-180 text-amber-400' : ''}`}
+          className={`w-3.5 h-3.5 text-black stroke-[3] transition-transform duration-300 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
         />
       </button>
 
-      {/* Dropdown Menu */}
+      {/* 2. Glassmorphism Language Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-zinc-950 border border-amber-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 p-2 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
-          {/* Header */}
-          <div className="px-3 py-2 border-b border-zinc-800/80 mb-2">
-            <div className="flex items-center justify-between text-xs font-black text-white">
+        <div
+          id="language-dropdown-menu"
+          className="fixed left-4 right-4 sm:left-auto sm:right-0 mt-2 sm:absolute sm:left-0 sm:right-auto sm:top-full animate-slide-down transition-all duration-300"
+          style={{
+            width: '320px',
+            maxWidth: 'calc(100vw - 32px)',
+            background: 'rgba(20, 20, 20, 0.95)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 193, 7, 0.4)',
+            borderRadius: '16px',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.9)',
+            zIndex: 99999,
+            overflow: 'hidden'
+          }}
+        >
+          {/* Header & Search */}
+          <div className="p-3 border-b border-zinc-800 space-y-2 bg-black/40">
+            <div className="flex items-center justify-between text-xs font-bold text-white px-1">
               <div className="flex items-center gap-1.5 text-amber-400">
-                <Globe className="w-4 h-4" />
-                <span>SELECT LANGUAGE</span>
+                <span>🌍</span>
+                <span className="font-bold text-xs uppercase tracking-wider">Select Language</span>
               </div>
-              <span className="text-[10px] text-zinc-500 font-mono">14 Languages</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-mono font-bold">
+                14 Languages
+              </span>
             </div>
-            <p className="text-[10px] text-zinc-400 mt-0.5">
-              Includes Hausa, Igbo, Yoruba &amp; Global translations
-            </p>
 
-            {/* Featured Languages Quick Bar */}
-            <div className="flex items-center gap-1.5 pt-2 pb-1 overflow-x-auto">
-              {[
-                { code: 'en', label: 'English', flag: '🌐' },
-                { code: 'ha', label: 'Hausa', flag: '🇳🇬' },
-                { code: 'fr', label: 'French', flag: '🇫🇷' },
-                { code: 'ar', label: 'Arabic', flag: '🇦🇪' }
-              ].map((item) => (
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 pointer-events-none" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search 14 Languages..."
+                className="w-full pl-8.5 pr-8 py-2 rounded-xl bg-zinc-900/90 border border-amber-500/30 focus:border-amber-400 text-xs text-white placeholder:text-zinc-500 outline-none transition-all duration-200"
+              />
+              {searchQuery && (
                 <button
-                  key={item.code}
                   type="button"
-                  onClick={() => {
-                    onLanguageChange(item.code as LanguageCode);
-                    setIsOpen(false);
-                  }}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-bold shrink-0 flex items-center gap-1 transition-all cursor-pointer ${
-                    currentLanguage === item.code
-                      ? 'bg-amber-500 text-zinc-950 shadow-sm'
-                      : 'bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
-                  }`}
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-400 hover:text-white rounded-full transition-colors cursor-pointer"
                 >
-                  <span>{item.flag}</span>
-                  <span>{item.label}</span>
+                  <X className="w-3 h-3" />
                 </button>
-              ))}
+              )}
             </div>
-
-            {/* Quick Search */}
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search all 14 languages..."
-              className="mt-2 w-full px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500"
-            />
           </div>
 
           {/* Language Options List */}
-          <div className="max-h-64 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-            {filteredLanguages.map((lang) => {
-              const isSelected = lang.code === currentLanguage;
-              return (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => {
-                    onLanguageChange(lang.code);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/40 text-amber-400'
-                      : 'text-zinc-300 hover:bg-zinc-900 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-base">{lang.flag}</span>
-                    <div>
-                      <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                        <span>{lang.name}</span>
-                        <span className="text-[10px] text-zinc-400 font-normal">
-                          ({lang.nativeName})
-                        </span>
+          <div
+            className="max-h-[260px] overflow-y-auto p-2 space-y-1 custom-scrollbar"
+            style={{ overscrollBehavior: 'contain' }}
+          >
+            {filteredLanguages.length > 0 ? (
+              filteredLanguages.map((lang) => {
+                const isSelected = lang.code === currentLanguage;
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => {
+                      onLanguageChange(lang.code);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? 'text-amber-300 font-bold border border-amber-400/50 shadow-sm'
+                        : 'text-zinc-300 hover:bg-zinc-800/80 hover:text-white border border-transparent'
+                    }`}
+                    style={
+                      isSelected
+                        ? { background: 'rgba(255, 193, 7, 0.2)' }
+                        : {}
+                    }
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-lg leading-none shrink-0">{lang.flag}</span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+                          <span className={isSelected ? 'text-amber-300 font-bold' : ''}>
+                            {lang.name}
+                          </span>
+                          <span className="text-[10px] text-zinc-400 font-normal truncate">
+                            • {lang.nativeName}
+                          </span>
+                        </div>
+                        <div className="text-[9px] text-zinc-500 font-medium truncate">
+                          {lang.region}
+                        </div>
                       </div>
-                      <div className="text-[9px] text-zinc-500">{lang.region}</div>
                     </div>
-                  </div>
 
-                  {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                </button>
-              );
-            })}
+                    {isSelected && (
+                      <div className="w-5 h-5 rounded-full bg-[#FFC107] text-black flex items-center justify-center shrink-0 ml-2 shadow-sm">
+                        <Check className="w-3.5 h-3.5 stroke-[3] text-black" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="py-6 text-center text-xs text-zinc-500">
+                No languages found matching "{searchQuery}"
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 };
+
+export default LanguageSelector;

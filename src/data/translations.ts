@@ -23,8 +23,8 @@ export interface LanguageOption {
 }
 
 export const LANGUAGES: LanguageOption[] = [
-  { code: 'en', name: 'English', nativeName: 'English (US/UK/NG)', flag: '🌐', region: 'Global' },
-  { code: 'ha', name: 'Hausa', nativeName: 'Harshen Hausa', flag: '🇳🇬', region: 'Nigeria / West Africa' },
+  { code: 'en', name: 'English', nativeName: 'English (US/UK/NG)', flag: '🇳🇬', region: 'Global / Nigeria' },
+  { code: 'ha', name: 'Hausa', nativeName: 'Harshen Hausa', flag: '🇭🇦', region: 'Nigeria / West Africa' },
   { code: 'ig', name: 'Igbo', nativeName: 'Asụsụ Igbo', flag: '🇳🇬', region: 'Nigeria / West Africa' },
   { code: 'yo', name: 'Yoruba', nativeName: 'Èdè Yorùbá', flag: '🇳🇬', region: 'Nigeria / West Africa' },
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', region: 'Europe / Francophone' },
